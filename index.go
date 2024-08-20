@@ -4,16 +4,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
-	"os"
 
 	"github.com/bwmarrin/discordgo"
 )
 
 // Token from environment variable
 const token = "YOUR_BOT_TOKEN"
-const prefix = "%"
+const prefix = "YOUR_PREFIX"
 
 func main() {
 	dg, err := discordgo.New("Bot " + token)
@@ -22,16 +20,27 @@ func main() {
 		return
 	}
 
-	dg.AddMessageCreateHandler(messageCreate)
+	// Register the message handler
+	dg.AddHandler(messageCreate)
+
+	// Open a connection to Discord
 	err = dg.Open()
 	if err != nil {
 		fmt.Println("error opening connection,", err)
 		return
 	}
 
+	// Set the bot's activity after successfully opening the connection
+	err = dg.UpdateGameStatus(4, "Made with love <3 by Pella.app")
+	if err != nil {
+		fmt.Println("error updating status,", err)
+		return
+	}
+
 	fmt.Println("Bot is now running. Press CTRL+C to exit.")
 	select {}
 }
+
 
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Author.ID == s.State.User.ID {
@@ -46,10 +55,10 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			s.ChannelMessageSend(m.ChannelID, "Pong!")
 		case "help":
 			helpMessage := `**Available commands:**
-- **%ping**: Replies with Pong!
-- **%help**: Lists all commands.
-- **%joke**: Tells a random joke.
-- **%quote**: Sends a random inspirational quote.`
+- **ping**: Replies with Pong!
+- **help**: Lists all commands.
+- **joke**: Tells a random joke.
+- **quote**: Sends a random inspirational quote.`
 			s.ChannelMessageSend(m.ChannelID, helpMessage)
 		case "joke":
 			joke, err := fetchJoke()
